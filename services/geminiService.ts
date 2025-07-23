@@ -1,20 +1,29 @@
 // Funciones IA con Google GenAI
 import type { GameState, DilemmaResponse, EvaluationResponse, Role } from '../types';
 
-import { TextServiceClient } from '@google/genai';
-// Instantiate the Google GenAI client with API key from env
-const genaiClient = new TextServiceClient({ apiKey: process.env.GEMINI_API_KEY });
+// Browser-friendly fetch wrapper for Google GenAI REST API
+const GENAI_URL = 'https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText';
+async function callGenAI(prompt: string): Promise<string> {
+  const res = await fetch(`${GENAI_URL}?key=${process.env.GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: { text: prompt },
+      model: 'text-bison-001'
+    })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.candidates?.[0]?.output;
+}
 
 export const generateDilemma = async (role: Role, gameState: GameState): Promise<DilemmaResponse> => {
     const prompt = `Eres el rol ${role.title}. Estado del juego: ${JSON.stringify(gameState)}. ` +
         `Proporciona un dilema con descripción y tres opciones de respuesta, formato JSON:` +
         `{ "dilemmaDescription": string, "choices": [{ "id": string, "text": string }] }`;
     try {
-        const [response] = await genaiClient.generateText({
-            model: 'text-bison-001',
-            prompt: { text: prompt }
-        });
-        return JSON.parse(response.text) as DilemmaResponse;
+        const output = await callGenAI(prompt);
+        return JSON.parse(output || '') as DilemmaResponse;
     } catch (err) {
         console.warn('AI generateDilemma failed, falling back to simulation', err);
         return {
@@ -34,11 +43,8 @@ export const evaluateDecision = async (role: Role, choiceText: string, gameState
         `Evalúa esta decisión y devuelve un objeto JSON con:` +
         `{ "narrative": string, "scoreUpdates": { "financial": number, "reputation": number, "operational": number, "dataIntegrity": number } }`;
     try {
-        const [response] = await genaiClient.generateText({
-            model: 'text-bison-001',
-            prompt: { text: prompt }
-        });
-        return JSON.parse(response.text) as EvaluationResponse;
+        const output = await callGenAI(prompt);
+        return JSON.parse(output || '') as EvaluationResponse;
     } catch (err) {
         console.warn('AI evaluateDecision failed, falling back to simulation', err);
         return {
