@@ -1,39 +1,54 @@
-// Funciones simuladas para IA
+// Funciones IA con Google GenAI
 import type { GameState, DilemmaResponse, EvaluationResponse, Role } from '../types';
 
-export const getIAResponse = async (_prompt: string): Promise<string> => {
-    // Simula una respuesta de IA en formato JSON
-    return JSON.stringify({
-        dilemmaDescription: 'Simulación: Tienes que decidir cómo responder a un ataque cibernético.',
-        choices: [
-            { id: 'A', text: 'Notificar a todos los empleados.' },
-            { id: 'B', text: 'Investigar en silencio.' },
-            { id: 'C', text: 'Contactar a las autoridades.' }
-        ]
-    });
+import { TextServiceClient } from '@google/genai';
+// Instantiate the Google GenAI client with API key from env
+const genaiClient = new TextServiceClient({ apiKey: process.env.GEMINI_API_KEY });
+
+export const generateDilemma = async (role: Role, gameState: GameState): Promise<DilemmaResponse> => {
+    const prompt = `Eres el rol ${role.title}. Estado del juego: ${JSON.stringify(gameState)}. ` +
+        `Proporciona un dilema con descripción y tres opciones de respuesta, formato JSON:` +
+        `{ "dilemmaDescription": string, "choices": [{ "id": string, "text": string }] }`;
+    try {
+        const [response] = await genaiClient.generateText({
+            model: 'text-bison-001',
+            prompt: { text: prompt }
+        });
+        return JSON.parse(response.text) as DilemmaResponse;
+    } catch (err) {
+        console.warn('AI generateDilemma failed, falling back to simulation', err);
+        return {
+            dilemmaDescription: 'Simulación: ¿Cómo debe responder tu rol ante la amenaza?',
+            choices: [
+                { id: 'A', text: 'Opción simulada A' },
+                { id: 'B', text: 'Opción simulada B' },
+                { id: 'C', text: 'Opción simulada C' }
+            ]
+        };
+    }
 };
 
-export const generateDilemma = async (_role: Role, _gameState: GameState): Promise<DilemmaResponse> => {
-    // Devuelve un dilema simulado
-    return {
-        dilemmaDescription: 'Simulación: ¿Cómo debe responder tu rol ante la amenaza?',
-        choices: [
-            { id: 'A', text: 'Opción simulada A' },
-            { id: 'B', text: 'Opción simulada B' },
-            { id: 'C', text: 'Opción simulada C' }
-        ]
-    };
-};
-
-export const evaluateDecision = async (_role: Role, _choiceText: string, _gameState: GameState): Promise<EvaluationResponse> => {
-    // Devuelve una evaluación simulada
-    return {
-        narrative: 'Simulación: Decisión evaluada correctamente.',
-        scoreUpdates: {
-            financial: 0,
-            reputation: 0,
-            operational: 0,
-            dataIntegrity: 0
-        }
-    };
+export const evaluateDecision = async (role: Role, choiceText: string, gameState: GameState): Promise<EvaluationResponse> => {
+    const prompt = `Eres el rol ${role.title}. Estado del juego: ${JSON.stringify(gameState)}. ` +
+        `El jugador eligió: "${choiceText}". ` +
+        `Evalúa esta decisión y devuelve un objeto JSON con:` +
+        `{ "narrative": string, "scoreUpdates": { "financial": number, "reputation": number, "operational": number, "dataIntegrity": number } }`;
+    try {
+        const [response] = await genaiClient.generateText({
+            model: 'text-bison-001',
+            prompt: { text: prompt }
+        });
+        return JSON.parse(response.text) as EvaluationResponse;
+    } catch (err) {
+        console.warn('AI evaluateDecision failed, falling back to simulation', err);
+        return {
+            narrative: 'Simulación: Decisión evaluada correctamente.',
+            scoreUpdates: {
+                financial: 0,
+                reputation: 0,
+                operational: 0,
+                dataIntegrity: 0
+            }
+        };
+    }
 };
