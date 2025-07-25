@@ -20,7 +20,16 @@ app.post('/api/generateText', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: { text: prompt } })
     });
-    const data = await response.json();
+    // Read raw response text for debugging
+    const text = await response.text();
+    console.log('Raw response text from Google API:', text);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      console.error('Error parsing JSON from Google API:', parseErr);
+      return res.status(500).json({ error: 'Invalid JSON from upstream', details: text });
+    }
     return res.status(response.status).json(data);
   } catch (err) {
     console.error('Proxy error:', err);
