@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 // Use official Google GenAI client on server side
-import { TextServiceClient } from '@google/genai';
+import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 // Load variables from .env.local
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
@@ -13,18 +13,18 @@ app.use(express.json());
 app.post('/api/generateText', async (req, res) => {
   try {
     const { prompt, model } = req.body;
-    // Initialize GenAI client with API key
-    const client = new TextServiceClient({ apiKey: process.env.GEMINI_API_KEY });
-    // Call the API
-    const [response] = await client.generateText({
-      model: model || 'text-bison-001',
-      prompt: { text: prompt }
+    const apiKey = process.env.GEMINI_API_KEY;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${model || 'text-bison-001'}:generateText?key=${apiKey}`;
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: { text: prompt } })
     });
-    // Send back the full response as JSON
-    return res.status(200).json({ candidates: [{ output: response.text }] });
+    const data = await response.json();
+    return res.status(response.status).json(data);
   } catch (err) {
     console.error('Proxy error:', err);
-    res.status(500).json({ error: 'Proxy failed', details: err.message });
+    return res.status(500).json({ error: 'Proxy failed', details: err.message });
   }
 });
 
