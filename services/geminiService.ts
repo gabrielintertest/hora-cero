@@ -1,14 +1,13 @@
 // Funciones IA con Google GenAI
 import type { GameState, DilemmaResponse, EvaluationResponse, Role } from '../types';
 
-// Browser-friendly fetch wrapper for Google GenAI REST API
-const GENAI_URL = 'https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText';
 async function callGenAI(prompt: string): Promise<string> {
-  const res = await fetch(`${GENAI_URL}?key=${process.env.GEMINI_API_KEY}`, {
+  // Call local proxy to avoid CORS
+  const res = await fetch('/api/generateText', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      prompt: { text: prompt },
+      prompt: prompt,
       model: 'text-bison-001'
     })
   });
