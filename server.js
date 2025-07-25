@@ -3,8 +3,8 @@ import path from 'path';
 // Use official Google GenAI client on server side
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-// Carga variables de .env.local usando ruta absoluta del script
-dotenv.config({ path: path.join(__dirname, '.env.local') });
+// Load variables from .env.local at project root
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 const app = express();
 app.use(express.json());
