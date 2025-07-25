@@ -14,7 +14,8 @@ app.post('/api/generateText', async (req, res) => {
   try {
     const { prompt, model } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${model || 'text-bison-001'}:generateText?key=${apiKey}`;
+    // Usar v1beta2 para text-bison-001, ya que v1 no está disponible
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta2/models/${model || 'text-bison-001'}:generateText?key=${apiKey}`;
     // Logs para depuración
     console.log('API key cargada:', apiKey);
     console.log('Llamando a URL de Google API:', apiUrl);
@@ -27,6 +28,11 @@ app.post('/api/generateText', async (req, res) => {
     // Read raw response text for debugging
     const text = await response.text();
     console.log('Raw response text from Google API:', text);
+    // Si la respuesta no es OK, retornar detalles para facilitar diagnóstico
+    if (!response.ok) {
+      console.error('Upstream error status:', response.status, 'response body:', text);
+      return res.status(response.status).json({ error: 'Upstream error', status: response.status, details: text });
+    }
     let data;
     try {
       data = JSON.parse(text);
