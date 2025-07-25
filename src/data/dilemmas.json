@@ -1,0 +1,18 @@
+[
+  {
+    "dilemmaDescription": "Simulación: Un empleado reporta actividad inusual en el servidor de producción.",
+    "choices": [
+      { "id": "A", "text": "Investigar inmediatamente y aislar el servidor." },
+      { "id": "B", "text": "Notificar primero al equipo de TI antes de actuar." },
+      { "id": "C", "text": "Esperar a ver si el problema se resuelve solo." }
+    ]
+  },
+  {
+    "dilemmaDescription": "Simulación: Se detectó un correo de phishing con un enlace sospechoso.",
+    "choices": [
+      { "id": "A", "text": "Bloquear el dominio y alertar a todos los usuarios." },
+      { "id": "B", "text": "Ignorar el correo, podría ser falso positivo." },
+      { "id": "C", "text": "Reenviar al equipo de seguridad para análisis." }
+    ]
+  }
+]
