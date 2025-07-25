@@ -11,9 +11,13 @@ async function callGenAI(prompt: string): Promise<string> {
       model: 'text-bison-001'
     })
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || `Status ${res.status}`);
+  }
   const data = await res.json();
-  return data.candidates?.[0]?.output;
+  // Expecting { candidates: [{ output: string }] }
+  return data.candidates?.[0]?.output || '';
 }
 
 export const generateDilemma = async (role: Role, gameState: GameState): Promise<DilemmaResponse> => {
