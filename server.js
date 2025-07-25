@@ -3,8 +3,8 @@ import path from 'path';
 // Use official Google GenAI client on server side
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-// Load variables from .env.local
-dotenv.config({ path: path.join(process.cwd(), '.env.local') });
+// Carga variables de .env.local usando ruta absoluta del script
+dotenv.config({ path: path.join(__dirname, '.env.local') });
 
 const app = express();
 app.use(express.json());
@@ -15,11 +15,15 @@ app.post('/api/generateText', async (req, res) => {
     const { prompt, model } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
     const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${model || 'text-bison-001'}:generateText?key=${apiKey}`;
+    // Logs para depuración
+    console.log('API key cargada:', apiKey);
+    console.log('Llamando a URL de Google API:', apiUrl);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: { text: prompt } })
     });
+    console.log('Respuesta de upstream status:', response.status, 'headers:', response.headers.raw());
     // Read raw response text for debugging
     const text = await response.text();
     console.log('Raw response text from Google API:', text);
